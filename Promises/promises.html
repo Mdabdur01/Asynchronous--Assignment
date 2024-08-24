@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise with Timeout and Error Handling</title>
+    <link rel="stylesheet" href="promises.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="center">
+            <!-- <h1>Fetch Posts with Promise and Timeout</h1> -->
+            <div class="btnContainer">
+                <button id="fetchButton">click me!</button>
+            </div>
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const fetchButton = document.querySelector("#fetchButton");
+        const message = document.querySelector("#message");
+
+        fetchButton.addEventListener("click", () => {
+            message.style.height = "500px";
+        });
+
+        // Function to simulate the fetch request with a timeout
+        function fetchWithTimeout(url, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                // Set timeout to reject the promise if it takes too long
+                const timeoutId = setTimeout(() => {
+                    reject(new Error("Operation timed out"));
+                }, timeout);
+
+                // Fetch the data from the API
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        clearTimeout(timeoutId); // Clear the timeout if fetch is successful
+                        resolve(data);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeoutId);
+                        reject(error);
+                    });
+            });
+        }
+
+        // Function to display the fetched data or error
+        function fetchDataAndDisplay() {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = "Loading..."; // Show loading message
+
+            // Call the fetchWithTimeout function with a 5-second timeout
+            fetchWithTimeout('https://dummyjson.com/posts', 5000)
+                .then(data => {
+                    const posts = data.posts; // Array of posts
+                    messageDiv.innerHTML = ''; // Clear previous content
+                    const header = document.createElement("h2");
+                    header.textContent = "Posts:";
+                    header.style.paddingLeft = "20px";
+                    messageDiv.appendChild(header);
+
+
+
+                    // Create a list of post titles and display them
+                    const ul = document.createElement('ul');
+                    posts.forEach(post => {
+                        const li = document.createElement('li');
+                        li.textContent = post.title;
+                        li.style.padding = "8px"
+                        li.style.fontSize = "16px"
+                        ul.appendChild(li);
+                    });
+                    messageDiv.appendChild(ul);
+                })
+                .catch(error => {
+                    // Display the error message in the div
+                    messageDiv.textContent = `Error: ${error.message}`;
+                    messageDiv.style.color = "red"; // Change text color to red for errors
+                });
+        }
+
+        // Button click event listener
+        document.getElementById("fetchButton").addEventListener("click", function () {
+            fetchDataAndDisplay();
+        });
+    </script>
+</body>
+
+</html>

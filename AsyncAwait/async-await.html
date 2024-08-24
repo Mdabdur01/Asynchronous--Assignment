@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Async/Await with Error Handling</title>
+    <!-- <link rel="stylesheet" href="async-await.css"> -->
+    <style>
+        body {
+            height: 100%;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            height: 100vh;
+            width: 100vw;
+            background-color: #9f70fd;
+        }
+
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: calc(auto);
+            width: auto;
+            transform: translate(-50%, -50%);
+        }
+
+        .btnContainer {
+            width: fit-content;
+            margin: auto;
+        }
+
+        #fetchButton {
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: white;
+            background-color: #4caf50;
+        }
+
+        #message {
+            height: 0px;
+            width: 40vw;
+            background-color: white;
+            margin-top: 20px;
+            border-radius: 20px;
+            transition: all 300ms ease-in-out;
+            overflow: auto;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        li:nth-child(odd) {
+            background-color: #f0f0f0;
+            /* Light color for odd rows */
+        }
+
+        li:nth-child(even) {
+            background-color: #d3d3d3;
+            /* Darker color for even rows */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="center">
+            <!-- <h1>Fetch Posts with Async/Await</h1> -->
+            <div class="btnContainer">
+                <button id="fetchButton">Fetch Posts</button>
+            </div>
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const fetchButton = document.querySelector("#fetchButton");
+        const message = document.querySelector("#message")
+
+        fetchButton.addEventListener("click", () => {
+            message.style.height = "500px"
+        });
+
+        // Async function to fetch data with error handling and timeout
+        async function fetchWithTimeout(url, timeout = 5000) {
+            const controller = new AbortController();
+            const signal = controller.signal;
+
+            // Set a timeout to abort the request after the specified time
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            try {
+                const response = await fetch(url, { signal });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                clearTimeout(timeoutId); // Clear the timeout if successful
+                return data;
+
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear the timeout on error
+                if (error.name === 'AbortError') {
+                    throw new Error("Operation timed out");
+                } else {
+                    throw new Error("Network error or invalid response");
+                }
+            }
+        }
+
+        // Function to display the fetched data or error
+        async function fetchDataAndDisplay() {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = "Loading..."; // Show loading message
+            messageDiv.style.color = "green"; // Reset to green
+
+            try {
+                const data = await fetchWithTimeout('https://dummyjson.com/posts', 5000);
+                const posts = data.posts; // Array of posts
+                messageDiv.innerHTML = ''; // Clear previous content
+                const header = document.createElement("h2");
+                header.textContent = "Posts:"
+                header.style.paddingLeft = "20px";
+                messageDiv.appendChild(header);
+
+
+                // Create a list of post titles and display them
+                const ul = document.createElement('ul');
+                posts.forEach(post => {
+                    const li = document.createElement('li');
+                    li.textContent = post.title;
+                    li.style.padding = "8px"
+                    li.style.fontSize = "16px"
+                    ul.appendChild(li);
+                });
+                messageDiv.appendChild(ul);
+
+            } catch (error) {
+                // Display the error message in the div
+                messageDiv.textContent = `Error: ${error.message}`;
+                messageDiv.style.color = "red"; // Change text color to red for errors
+            }
+        }
+
+        // Button click event listener
+        document.getElementById("fetchButton").addEventListener("click", function () {
+            fetchDataAndDisplay();
+        });
+    </script>
+</body>
+
+</html>

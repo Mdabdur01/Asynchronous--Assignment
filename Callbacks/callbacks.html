@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Callback with API Fetch</title>
+  <link rel="stylesheet" href="callbacks.css" />
+</head>
+
+<body>
+  <div class="container">
+    <div class="center">
+      <div class="btnContainer">
+        <button id="fetchButton">Click Me</button>
+      </div>
+      <div id="message"></div>
+    </div>
+  </div>
+
+
+  <script>
+
+    const messageDiv =
+      document.getElementById("message");
+
+
+    // Function to handle the delay and execute the callback
+    function executeAfterDelay(callback) {
+      setTimeout(function () {
+        callback();
+      }, 5000); // 5-second delay
+    }
+
+    // Function to fetch data from the API
+    function fetchDataAndDisplay() {
+      fetch("https://dummyjson.com/posts")
+        .then((response) => response.json())
+        .then((data) => {
+          const posts = data.posts; // Array of posts
+
+
+          // Clear any previous content
+          messageDiv.innerHTML = "";
+          const header = document.createElement("h2");
+          header.textContent = "Posts:"
+          header.style.paddingLeft = "20px";
+          messageDiv.appendChild(header);
+
+
+          // Create a list of post titles and display them
+          const ul = document.createElement("ul");
+          posts.forEach((post) => {
+            const li = document.createElement("li");
+            li.textContent = post.title;
+            li.style.padding = "8px"
+            li.style.fontSize = "16px"
+            ul.appendChild(li);
+          });
+          messageDiv.appendChild(ul);
+        })
+        .catch((error) => {
+          document.getElementById("message").textContent =
+            "Error fetching data.";
+          console.error("Error:", error);
+        });
+    }
+
+    // Button click event listener
+    document
+      .getElementById("fetchButton")
+      .addEventListener("click", function () {
+        messageDiv.style.height = "500px"
+        messageDiv.style.padding = "5px 10px"
+        // Update message to indicate the delay
+        messageDiv.textContent =
+          "Waiting for 5 seconds...";
+
+        // Execute the callback after 5 seconds
+        executeAfterDelay(fetchDataAndDisplay);
+      });
+
+
+
+  </script>
+</body>
+
+</html>
